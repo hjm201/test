@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>简单地图</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<style type="text/css">
+html,body{
+    width:100%;
+    height:100%;
+}
+*{
+    margin:0px;
+    padding:0px;
+}
+body, button, input, select, textarea {
+    font: 12px/16px Verdana, Helvetica, Arial, sans-serif;
+}
+p{
+    width:603px;
+    padding-top:3px;
+    overflow:hidden;
+}
+.btn{
+    width:142px;
+}
+#container{
+    position: absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+.shape{
+    width:20px;
+    height:20px;
+    opacity:0.5;
+    position: absolute;
+    left:50%;
+    top:50%;
+    background-color: red;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100
+}
+</style>
+<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&key=3DPBZ-I5JWF-R2PJT-NZFSD-ZSIQK-JABJA&libraries=drawing,geometry,autocomplete,convertor"></script>
+<script>
+var marker = null;
+
+window.onload = function(){
+
+//直接加载地图
+    //初始化地图函数  自定义函数名init
+    var _center = new qq.maps.LatLng(22.536384835013664,113.95014900320362);
+
+    function init() {
+        //定义map变量 调用 qq.maps.Map() 构造函数   获取地图显示容器
+         var map = new qq.maps.Map(document.getElementById("container"), {
+            center: _center,      // 地图的中心地理坐标。
+            zoom:16,                                               // 地图的中心地理坐标。
+            draggable: false
+        });
+        console.log(map);
+        // setTimeout(function(){
+        //     map.panTo(new qq.maps.LatLng(39.916527,116.397128));
+        // },5000)
+        qq.maps.event.addListener(map, 'center_changed', function() {
+            //console.log("地图中心为：" + map.getCenter());
+        });
+
+        qq.maps.event.addListener(map, 'click', function(event) {
+            console.log('经度：' + event.latLng.getLng() +
+        ',纬度：' + event.latLng.getLat() + ']');   
+        });
+
+        qq.maps.event.addListener(map, 'dragend', function(event) {
+            console.log("地图中心为：" + map.getCenter());
+        });
+
+        /*
+        //控件没什么用
+        var scaleControl = new qq.maps.ScaleControl({
+            align: qq.maps.ALIGN.BOTTOM_LEFT,
+            margin: qq.maps.Size(85, 15),
+            map: map
+        });
+        
+        var zoomLevelControl = new qq.maps.Control(
+            {
+                content: '缩放级别:' + map.getZoom(),
+                align: qq.maps.ALIGN.TOP,
+                map: map
+            }
+        );*/
+
+        marker = new qq.maps.Marker({
+            position: _center,
+            map: map,
+            content:'文本标注'  //无效
+        });
+
+        var marker1 = new qq.maps.Marker({
+            position: new qq.maps.LatLng(22.547191611412323, 113.95781488891602),
+            map: map
+        });
+
+        var anchor = new qq.maps.Point(12, 0),
+                 size = new qq.maps.Size(48, 84),
+                 origin = new qq.maps.Point(0, 0),
+                 scaleSize = new qq.maps.Size(24, 42),
+                 markerIcon = new qq.maps.MarkerImage(
+             "data:image/png;base64,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",
+             size, 
+             origin,
+             anchor,
+             scaleSize
+           );
+        marker.setIcon(markerIcon);
+        marker1.setIcon(markerIcon);
+
+
+        //marker的点击事件
+        var info = new qq.maps.InfoWindow({
+            map: map
+        });
+        qq.maps.event.addListener(marker, 'click', function() {
+           info.open(); 
+           info.setContent('<div style="text-align:center;white-space:nowrap;'+
+           'margin:10px;">单击标记</div>');
+           info.setPosition(_center); 
+        });
+        marker.setDraggable(true);
+        qq.maps.event.addListener(marker, 'dragend', function(event) {
+            console.log("marker的位置为：" + marker.getPosition());
+        });
+
+
+        var paths = [
+                new qq.maps.LatLng(22.536384835013664,113.95014900320362),
+
+                new qq.maps.LatLng(22.536381308395363,113.94996738236125),
+
+                new qq.maps.LatLng(22.53638,113.949778),
+
+                new qq.maps.LatLng(22.53638,113.949778),
+
+                new qq.maps.LatLng(22.5356409256592,113.94983693762464),
+
+                new qq.maps.LatLng(22.5356409256592,113.94983693762464),
+
+                new qq.maps.LatLng(22.5356409256592,113.94983693762464),
+
+                new qq.maps.LatLng(22.5356409256592,113.94983693762464),
+
+                new qq.maps.LatLng(22.53545786173277,113.94983886461334),
+
+                new qq.maps.LatLng(22.53545786173277,113.94983886461334),
+
+                new qq.maps.LatLng(22.535188767213114,113.94984223934426),
+
+                new qq.maps.LatLng(22.53325112262774,113.94987753722629),
+
+                new qq.maps.LatLng(22.53325112262774,113.94987753722629),
+
+                new qq.maps.LatLng(22.532935,113.949745),
+
+                new qq.maps.LatLng(22.53286248461538,113.94966462307691),
+
+                new qq.maps.LatLng(22.5327,113.949851),
+
+                new qq.maps.LatLng(22.5327,113.949851),
+
+                new qq.maps.LatLng(22.5327,113.949942)
+
+            // new qq.maps.LatLng(22.53697612119435,113.9540147781372),
+            // new qq.maps.LatLng(22.536183358893375,113.95418643951416),
+            // new qq.maps.LatLng(22.535232038124086,113.9556884765625),
+            // new qq.maps.LatLng(22.534756375281635,113.95684719085693),
+            // new qq.maps.LatLng(22.53336901596581,113.95628929138184),
+            // new qq.maps.LatLng(22.532576232956018,113.95581722259521),
+            // new qq.maps.LatLng(22.532417675807924,113.95362854003906),
+            // new qq.maps.LatLng(22.532338397165613,113.9522123336792),
+            // new qq.maps.LatLng(22.534994206907676,113.9522123336792),
+            // new qq.maps.LatLng(22.535905891012714,113.9522123336792),
+            // new qq.maps.LatLng(22.535905891012714,113.95058155059814),
+            // new qq.maps.LatLng(22.537213948997056,113.95002365112305),
+            // new qq.maps.LatLng(22.53856163214095,113.94998073577881),
+            // new qq.maps.LatLng(22.53832380665969,113.95139694213867)
+
+            // new qq.maps.LatLng(22.539235468779715,113.94562482833862),
+            // new qq.maps.LatLng(22.538977825747345,113.94549608230591),
+            // new qq.maps.LatLng(22.53856163214095,113.94556045532227),
+            // new qq.maps.LatLng(22.538105799608644,113.94551753997803),
+            // new qq.maps.LatLng(22.537689603373494,113.94547462463379),
+            // new qq.maps.LatLng(22.537392319580242,113.94556045532227),
+            // new qq.maps.LatLng(22.537134673108334,113.94556045532227),
+            // new qq.maps.LatLng(22.536738292981973,113.94562482833862),
+            // new qq.maps.LatLng(22.5363419117177,113.94558191299438),
+            // new qq.maps.LatLng(22.536183358893375,113.94558191299438),
+            // new qq.maps.LatLng(22.536203178006367,113.94590377807617),
+            // new qq.maps.LatLng(22.53622299711652,113.94704103469849),
+            // new qq.maps.LatLng(22.536242816223837,113.94731998443604),
+            // new qq.maps.LatLng(22.536262635328303,113.94757747650146),
+            // new qq.maps.LatLng(22.53622299711652,113.94770622253418),
+            // new qq.maps.LatLng(22.53622299711652,113.94824266433716),
+            // new qq.maps.LatLng(22.536183358893375,113.94860744476318),
+            // new qq.maps.LatLng(22.53622299711652,113.94931554794312),
+            // new qq.maps.LatLng(22.536262635328303,113.94991636276245),
+            // new qq.maps.LatLng(22.53588607185704,113.94993782043457),
+            // new qq.maps.LatLng(22.53537077281116,113.94993782043457),
+            // new qq.maps.LatLng(22.534954568331784,113.94998073577881),
+            // new qq.maps.LatLng(22.53451854324598,113.94991636276245),
+            // new qq.maps.LatLng(22.534201433227913,113.94991636276245),
+            // new qq.maps.LatLng(22.5338645030358,113.94993782043457)
+            ];
+
+
+        function random(min,max){
+            return Math.floor(Math.random()*(max-min+1)+min);
+        }
+
+        //计算线路方向箭头旋转的方向,heading为两个经纬度点之间的航向(两点之间与正北方向的夹角)，其范围为[-180, 180)
+        //小车方向默认是朝正北的
+        function computeRotaion(heading){
+            console.log('heading =', heading);
+            let rotation;
+            if(heading < 0) {
+                rotation = 360 + heading;
+            }else {
+                rotation = heading;
+            }
+            return rotation
+        }
+
+        //开车,10秒钟更新一个坐标
+        var index = 1;
+        var drive = function(){
+            var heading = qq.maps.geometry.spherical.computeHeading(paths[index-1],paths[index]);
+            var speed = qq.maps.geometry.spherical.computeDistanceBetween(paths[index-1],paths[index]);
+            var rotation = computeRotaion(heading);
+            //nsole.log('speed =', speed)
+            console.log('rotation =', rotation)
+            speed = Math.round(speed/5*36/10);
+            if(speed){
+                marker.moveTo(paths[index],speed);
+                marker.setRotation(rotation);
+            }
+        };
+
+        drive();
+        var timer = setInterval(function () {
+            console.log('index =', index)
+            if(index==paths.length){
+                clearInterval(timer);
+                return;
+            }
+            index++;
+            drive();
+        }, 5000);
+
+        //marker.moveTo(paths[5], 60)
+        //marker.moveAlong(paths,100)
+     
+        var polyline = new qq.maps.Polyline({
+            path: paths,
+            strokeColor: '#48c285',
+            strokeWeight: 8,
+            map
+        });
+    }
+
+    //调用初始化函数地图
+    init();
+
+
+}
+</script>
+</head>
+<body>
+<!--   定义地图显示容器   -->
+<div id="container">
+    <div class="shape"></div>
+</div>
+
+</body>
+</html>
